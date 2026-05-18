@@ -226,10 +226,6 @@ __marimo__/
 # Docker Logs
 *.log
 
-# Database files
-data/
-*.db
-
 # OS junk files
 .DS_Store
 Thumbs.db
