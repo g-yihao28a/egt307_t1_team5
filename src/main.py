@@ -10,7 +10,7 @@ Program Flow:
 from pathlib import Path
 from config import load_config
 from ingestion import load_data_from_db
-
+from cleaning import DataCleaner
 try:
     # Load Config
     config = load_config("config.yaml")
@@ -22,6 +22,9 @@ try:
     df = load_data_from_db(db_path, table_name)
 
     # Clean Data
+    cleaner = DataCleaner()
+    df = cleaner.process(df)
+
     # Train Model
     # Export Results
 except ValueError as e:
