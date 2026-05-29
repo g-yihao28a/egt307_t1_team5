@@ -11,6 +11,8 @@ from pathlib import Path
 from config import load_config
 from ingestion import load_data_from_db
 from cleaning import DataCleaner
+from train import ModelTrainer
+
 try:
     # Load Config
     config = load_config("config.yaml")
@@ -26,6 +28,9 @@ try:
     df = cleaner.process(df)
 
     # Train Model
+    trainer = ModelTrainer("activity_level")
+    trainer.run(df)
+
     # Export Results
 except ValueError as e:
     print(f"Aborting pipeline: {e}")
