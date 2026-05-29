@@ -1,5 +1,5 @@
 data:
-  data_directory: "../data"
+  data_directory: "data"
   db_name: "gas_monitoring.db"
   table_name: "gas_monitoring"
   

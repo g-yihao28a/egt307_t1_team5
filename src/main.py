@@ -11,7 +11,7 @@ from pathlib import Path
 from config import load_config
 from ingestion import load_data_from_db
 from cleaning import DataCleaner
-from train import ModelTrainer
+from training import ModelTrainer
 
 try:
     # Load Config
@@ -26,6 +26,8 @@ try:
     # Clean Data
     cleaner = DataCleaner()
     df = cleaner.process(df)
+
+    # Feature Engineering
 
     # Train Model
     trainer = ModelTrainer("activity_level")

@@ -11,7 +11,7 @@ class ModelTrainer:
 
     def __init__(self, target_col):
         self.target_col = target_col
-
+        # move all these into config later
         self.models = {
             "Random Forest": RandomForestClassifier(
                 n_estimators=100,
@@ -56,8 +56,6 @@ class ModelTrainer:
             self.trained_models[name] = model
 
     def evaluate_models(self, X_test, y_test):
-        print("Freddy Fazbear Presents")
-
         for name, model in self.trained_models.items():
             preds = model.predict(X_test)
             acc = accuracy_score(y_test, preds)
@@ -68,6 +66,7 @@ class ModelTrainer:
             print(classification_report(y_test, preds))
 
     def run(self, df):
+        print("Training models")
         X, y = self.prepare_data(df)
         X_train, X_test, y_train, y_test = self.split_data(X, y)
         X_train, X_test = self.scale_data(X_train, X_test)
