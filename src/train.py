@@ -92,12 +92,7 @@ class ModelTrainer:
         print("Training and Validation dataset completed")
 
         # Split data into training and testing sets
-        return train_test_split(
-            X,
-            y,
-            test_size=0.2,
-            random_state=42
-        )
+        return train_test_split(X, y, test_size=0.2, random_state=42)
 
     def scale_data(self, X_train, X_test):
         '''
@@ -177,7 +172,6 @@ class ModelTrainer:
             df (pd.DataFrame): Input dataset
         '''
         
-        print("Machine is learning...")
         print("--------------------------")
 
         # Prepare data for training
