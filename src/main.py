@@ -12,6 +12,7 @@ from config import load_config
 from ingestion import load_data_from_db
 from cleaning import DataCleaner
 from training import ModelTrainer
+from feature_engineering import FeatureEngineer
 
 try:
     # Load Config
@@ -28,6 +29,8 @@ try:
     df = cleaner.process(df)
 
     # Feature Engineering
+    engineer = FeatureEngineer()
+    df = engineer.process(df)
 
     # Train Model
     trainer = ModelTrainer("activity_level")
