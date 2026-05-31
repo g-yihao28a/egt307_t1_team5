@@ -15,7 +15,7 @@ from training import ModelTrainer
 from feature_engineering import FeatureEngineer
 from preprocessing import DataPreprocessor
 
-
+from imblearn.over_sampling import SMOTE
 
 try:
     # Load Config
@@ -31,19 +31,21 @@ try:
     cleaner = DataCleaner()
     df = cleaner.process(df)
 
+    # Feature Engineering
+    engineer = FeatureEngineer()
+    df = engineer.add_features(df)
+    
     # Split Data
     preprocessor = DataPreprocessor(target_col="activity_level")
     X_train, X_test, y_train, y_test = preprocessor.process(df)
 
-    # Feature Engineering
-    engineer = FeatureEngineer()
-    engineer.fit(X_train)
-    X_train = engineer.transform(X_train)
-    X_test = engineer.transform(X_test)
-
+    # Synthetic data generation (Move into another file later)
+    smote = SMOTE(random_state=42)
+    X_train, y_train = smote.fit_resample(X_train, y_train)
+    
     # Train Model
-    trainer = ModelTrainer("activity_level")
-    trainer.run(X_train, y_train, X_test, y_test)
+    trainer = ModelTrainer("activity_level", X_train, y_train, X_test, y_test)
+    trainer.run()
     trainer.export_results()
 
     # Export Results

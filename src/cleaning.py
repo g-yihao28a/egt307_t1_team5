@@ -4,7 +4,9 @@ import numpy as np
 class DataCleaner:
     def __init__(self, activity_map=None):
         # move all these into config later
-        self.columns_to_drop = ["session_id"]
+        self.columns_to_drop = ["session_id"
+                                , "co_gassensor", "time_of_day", "ambient_light_level", "hvac_operation_mode"
+                                ]
         self.temperature_threshold = 50
         self.min_humidity, self.max_humidity = 0, 100 # Assuming percentage
         self.optimised_n = 5
@@ -18,10 +20,10 @@ class DataCleaner:
             'High Activity': 'high_activity',
         }
         self.categorical_columns = [
-            'time_of_day',
-            'co_gassensor',
-            'hvac_operation_mode',
-            'ambient_light_level',
+            # 'time_of_day',
+            # 'co_gassensor',
+            # 'hvac_operation_mode',
+            # 'ambient_light_level',
             'activity_level'
             ]
         
@@ -111,52 +113,35 @@ class DataCleaner:
         from sklearn.preprocessing import OrdinalEncoder
         from sklearn.impute import KNNImputer
         from sklearn.preprocessing import MinMaxScaler
-        # Encoding - KNN requires alla imputers to be numeric
-        encoders = {}
-        for col in self.categorical_columns:
-            encoder = OrdinalEncoder()
-            # Mask non-null values
-            mask = df[col].notnull()
-            # Convert data type of categorical columns to hold objects temporarily (numbers and letters)
-            df[col] = df[col].astype(object) 
-            
-            # Fit_transform encodes the categorical data e.g. "morning":1, "afternoon":2, etc..
-            # df.loc[mask, [col]] extracts masked values as a dataframe which is required
-            encoded_vals = encoder.fit_transform(df.loc[mask, [col]])
-            
-            # df.loc[mask, col] is the data just transformed, 
-            # flatten() changes the values back from a datafrom to a series to put back into column
-            df.loc[mask, col] = encoded_vals.flatten()
-            
-            # Change back to numeric, keeping NaNs as NaNs
-            df[col] = pd.to_numeric(df[col], errors='coerce')
-            
-            # Save encoding dictionary for decoding after imputation
-            encoders[col] = encoder
-
-        # Scaling
-        # Ensure numerical columns are float, not int, and scales values to between 0 and 1
+        # Only scale numerical columns!
         scaler = MinMaxScaler()
-        df[self.numerical_columns] = scaler.fit_transform(df[self.numerical_columns].astype(float))
+        df_num = df[self.numerical_columns].copy()
+        df_num_scaled = pd.DataFrame(scaler.fit_transform(df_num), columns=self.numerical_columns, index=df.index)
 
-        #Imputation
-        # weights='distance' prioritises closer neighbours instead of n_neighbours having equal weight
+        # Encode categoricals
+        encoders = {}
+        df_cat = df[self.categorical_columns].copy()
+        for col in self.categorical_columns:
+            df_cat[col] = df_cat[col].astype(object)
+            enc = OrdinalEncoder()
+            mask = df_cat[col].notnull()
+            df_cat.loc[mask, [col]] = enc.fit_transform(df_cat.loc[mask, [col]])
+            encoders[col] = enc
+        
+        # Concatenate back for imputation
+        df_combined = pd.concat([df_num_scaled, df_cat], axis=1)
+
+        # Impute
         imputer = KNNImputer(n_neighbors=self.optimised_n, weights='distance')
-        df_imputed = pd.DataFrame(
-            imputer.fit_transform(df), 
-            columns=df.columns, 
-            index=df.index
-        )
+        df_imputed = pd.DataFrame(imputer.fit_transform(df_combined), columns=df_combined.columns, index=df.index)
 
-        # Reverse scale numerical columns
+        # Inverse scale numerical
         df_imputed[self.numerical_columns] = scaler.inverse_transform(df_imputed[self.numerical_columns])
 
-        # Decode categorical columns back
+        # Decode categorical
         for col in self.categorical_columns:
-            # Use .round() to round float values generated to integer to be decoded
-            df_imputed[col] = encoders[col].inverse_transform(
-                df_imputed[[col]].round().astype(int)
-            ).flatten()
+            df_imputed[col] = encoders[col].inverse_transform(df_imputed[[col]].round().astype(int)).flatten()
+            
         return df_imputed
                             
     def process(self, df):
@@ -182,7 +167,8 @@ class DataCleaner:
 
         df = self.convert_kelvin_to_celsius(df) # Maybe try to check whether values are truly in kelvin
         df = self.remove_outlier_humidity_values(df)
-        df = self.convert_co_gassensor_to_string(df)
+        #df = self.convert_co_gassensor_to_string(df)
+
         df = self.impute_missing_data(df)
         print("Done cleaning")
         return df
