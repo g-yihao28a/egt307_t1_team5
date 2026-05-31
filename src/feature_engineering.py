@@ -4,45 +4,30 @@ from sklearn.decomposition import PCA
 
 
 class FeatureEngineer:
+    def __init__(self, n_components=0.95):
+        self.pca = PCA(n_components=n_components)
+        self.is_fitted = False
 
-    def __init__(self):
+    def fit(self, X_train: pd.DataFrame):
+        numeric_cols = X_train.select_dtypes(include=['float64', 'int64']).columns
+        self.pca.fit(X_train)
+        self.is_fitted = True
+        return self
 
-        self.numeric_features = [
-            "temperature",
-            "humidity",
-            "co2_infraredsensor",
-            "co2_electrochemicalsensor",
-            "metaloxidesensor_unit1",
-            "metaloxidesensor_unit2",
-            "metaloxidesensor_unit3",
-            "metaloxidesensor_unit4"
-        ]
-
-    def process(self, df: pd.DataFrame):
-
-        df = df.copy()
-
-        scaler = StandardScaler()
-
-        scaled_data = scaler.fit_transform(
-            df[self.numeric_features]
+    def transform(self, X: pd.DataFrame):
+        if not self.is_fitted:
+            raise RuntimeError("You must call fit() before transform().")
+        
+        # Select only numeric-looking columns for PCA
+        numeric_cols = X.select_dtypes(include=['float64', 'int64']).columns
+        pca_features = self.pca.transform(X[numeric_cols])
+        
+        # Create a DataFrame for the PCs to keep it compatible with pandas
+        pc_df = pd.DataFrame(
+            pca_features, 
+            columns=[f"PC{i+1}" for i in range(pca_features.shape[1])],
+            index=X.index
         )
-
-        pca = PCA(n_components=3)
-
-        pca_features = pca.fit_transform(
-            scaled_data
-        )
-
-        df["PC1"] = pca_features[:, 0]
-        df["PC2"] = pca_features[:, 1]
-        df["PC3"] = pca_features[:, 2]
-
-        print(
-            f"PCA explained variance: "
-            f"{pca.explained_variance_ratio_.sum():.2%}"
-        )
-
-        print("Feature engineering complete")
-
-        return df
+        
+        # Merge back with the rest of the data
+        return pd.concat([X, pc_df], axis=1)

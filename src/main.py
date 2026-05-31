@@ -13,6 +13,9 @@ from ingestion import load_data_from_db
 from cleaning import DataCleaner
 from training import ModelTrainer
 from feature_engineering import FeatureEngineer
+from preprocessing import DataPreprocessor
+
+
 
 try:
     # Load Config
@@ -28,13 +31,20 @@ try:
     cleaner = DataCleaner()
     df = cleaner.process(df)
 
+    # Split Data
+    preprocessor = DataPreprocessor(target_col="activity_level")
+    X_train, X_test, y_train, y_test = preprocessor.process(df)
+
     # Feature Engineering
     engineer = FeatureEngineer()
-    df = engineer.process(df)
+    engineer.fit(X_train)
+    X_train = engineer.transform(X_train)
+    X_test = engineer.transform(X_test)
 
     # Train Model
     trainer = ModelTrainer("activity_level")
-    trainer.run(df)
+    trainer.run(X_train, y_train, X_test, y_test)
+    trainer.export_results()
 
     # Export Results
 except ValueError as e:

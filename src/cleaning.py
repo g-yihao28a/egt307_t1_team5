@@ -172,7 +172,7 @@ class DataCleaner:
                           missing values filled via KNN
         """
 
-        print("Starting preprocessing") # Maybe change this
+        print("Starting cleaning") # Maybe change this
         df = df.copy()
         df = self.standardise_column_names(df)
         df = self.drop_columns(df) # Drop Session ID
@@ -184,5 +184,5 @@ class DataCleaner:
         df = self.remove_outlier_humidity_values(df)
         df = self.convert_co_gassensor_to_string(df)
         df = self.impute_missing_data(df)
-        print("Done preprocessing")
+        print("Done cleaning")
         return df
