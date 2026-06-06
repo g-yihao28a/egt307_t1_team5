@@ -2,4 +2,79 @@ data:
   data_directory: "data"
   db_name: "gas_monitoring.db"
   table_name: "gas_monitoring"
-  
+
+clean:
+  columns_to_drop:
+    - "session_id"
+    - "co_gassensor"
+    - "time_of_day"
+    - "ambient_light_level"
+    - "hvac_operation_mode"
+  temperature_threshold: 50
+  min_humidity: 0
+  max_humidity: 100
+  optimised_n: 5
+  activity_map:
+    - 'Low Activity': 'low_activity'
+    - 'LowActivity': 'low_activity'
+    - 'Low_Activity': 'low_activity'
+    - 'Moderate Activity': 'moderate_activity'
+    - 'ModerateActivity': 'moderate_activity'
+    - 'High Activity': 'high_activity'
+  categorical_columns:
+    - "activity_level"
+  numerical_columns:
+    - "temperature"
+    - "humidity"
+    - "co2_infraredsensor"
+    - "co2_electrochemicalsensor"
+    - "metaloxidesensor_unit1"
+    - "metaloxidesensor_unit2"
+    - "metaloxidesensor_unit3"
+    - "metaloxidesensor_unit4"
+random: 42
+test_size: 0.1
+
+model_params:
+  Random Forest:
+    n_estimators: [50, 300]
+    max_depth: [null, 10, 20, 30, 40, 50]
+    min_samples_split: [2, 21]
+  XGBoost:
+    n_estimators: [100, 500]
+    learning_rate: [0.01, 0.3]
+    max_depth: [3, 10]
+    subsample: [0.7, 0.8, 0.9, 1.0]
+    colsample_bytree: [0.7, 0.8, 0.9, 1.0]
+  SVM (RBF):
+    C: [0.1, 1, 10, 100]
+    gamma: ['scale', 'auto', 0.1, 0.01]
+
+model_definitions:
+  Random Forest:
+    module: "sklearn.ensemble"
+    class: "RandomForestClassifier"
+  XGBoost:
+    module: "xgboost"
+    class: "XGBClassifier"
+  SVM (RBF):
+    module: "sklearn.svm"
+    class: "SVC"
+
+models:
+  Random Forest:
+    name: "Random Forest"
+    params:
+      class_weight: "balanced"
+      random_state: 42
+  XGBoost:
+    name: "XGBoost"
+    params:
+      objective: "multi:softprob"
+      eval_metric: "mlogloss"
+      random_state: 42
+  SVM (RBF):
+    name: "SVM (RBF)"
+    params:
+      class_weight: "balanced"
+      kernel: "rbf"

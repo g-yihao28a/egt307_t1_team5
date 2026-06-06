@@ -1,42 +1,32 @@
 import pandas as pd
 import numpy as np
+from sklearn.preprocessing import OrdinalEncoder
+from sklearn.impute import KNNImputer
+from sklearn.preprocessing import MinMaxScaler
+from config import load_config
+
+config = load_config("config.yaml")
+clean_cfg = config["clean"]
+
+columns_to_drop = clean_cfg["columns_to_drop"]
+temperature_threshold = clean_cfg["temperature_threshold"]
+min_humidity, max_humidity = clean_cfg["min_humidity"], clean_cfg["max_humidity"]
+optimised_n = clean_cfg["optimised_n"]
+activity_map = clean_cfg["activity_map"]
+activity_map = {k: v for d in activity_map for k, v in d.items()}
+categorical_columns = clean_cfg["categorical_columns"]
+numerical_columns = clean_cfg["numerical_columns"]
 
 class DataCleaner:
-    def __init__(self, activity_map=None):
+    def __init__(self):
         # move all these into config later
-        self.columns_to_drop = ["session_id"
-                                , "co_gassensor", "time_of_day", "ambient_light_level", "hvac_operation_mode"
-                                ]
-        self.temperature_threshold = 50
-        self.min_humidity, self.max_humidity = 0, 100 # Assuming percentage
-        self.optimised_n = 5
-        # Activity map to standardise "activity level" data
-        self.activity_map = activity_map or {
-            'Low Activity': 'low_activity',
-            'LowActivity': 'low_activity',
-            'Low_Activity': 'low_activity',
-            'Moderate Activity': 'moderate_activity',
-            'ModerateActivity': 'moderate_activity',
-            'High Activity': 'high_activity',
-        }
-        self.categorical_columns = [
-            # 'time_of_day',
-            # 'co_gassensor',
-            # 'hvac_operation_mode',
-            # 'ambient_light_level',
-            'activity_level'
-            ]
-        
-        self.numerical_columns = [
-            'temperature',
-            'humidity',
-            'co2_infraredsensor',
-            'co2_electrochemicalsensor',
-            'metaloxidesensor_unit1',
-            'metaloxidesensor_unit2',
-            'metaloxidesensor_unit3',
-            'metaloxidesensor_unit4'
-            ]
+        self.columns_to_drop = columns_to_drop
+        self.temperature_threshold = temperature_threshold
+        self.min_humidity, self.max_humidity = min_humidity, max_humidity # Assuming percentage
+        self.optimised_n = optimised_n
+        self.activity_map = activity_map # Activity map to standardise "activity level" data
+        self.categorical_columns = categorical_columns
+        self.numerical_columns = numerical_columns
 
     def drop_columns(self, df: pd.DataFrame):
         """
@@ -110,10 +100,7 @@ class DataCleaner:
         """
         Use KNN model to impute missing data
         """
-        from sklearn.preprocessing import OrdinalEncoder
-        from sklearn.impute import KNNImputer
-        from sklearn.preprocessing import MinMaxScaler
-        # Only scale numerical columns!
+        # Only scale numerical columns
         scaler = MinMaxScaler()
         df_num = df[self.numerical_columns].copy()
         df_num_scaled = pd.DataFrame(scaler.fit_transform(df_num), columns=self.numerical_columns, index=df.index)
@@ -157,17 +144,17 @@ class DataCleaner:
                           missing values filled via KNN
         """
 
-        print("Starting cleaning") # Maybe change this
+        print("Starting cleaning")
         df = df.copy()
         df = self.standardise_column_names(df)
-        df = self.drop_columns(df) # Drop Session ID
+        df = self.drop_columns(df)
         df = self.standardise_hvac(df)
         df = self.standardise_activity(df)
         df = self.drop_duplicates(df)
 
         df = self.convert_kelvin_to_celsius(df) # Maybe try to check whether values are truly in kelvin
         df = self.remove_outlier_humidity_values(df)
-        #df = self.convert_co_gassensor_to_string(df)
+        #df = self.convert_co_gassensor_to_string(df) Not needed anymore because column has been dropped
 
         df = self.impute_missing_data(df)
         print("Done cleaning")

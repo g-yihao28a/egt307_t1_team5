@@ -16,7 +16,11 @@ from lightgbm import LGBMClassifier, log_evaluation, early_stopping
 from imblearn.ensemble import BalancedRandomForestClassifier
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
-import seaborn as sns
+import importlib
+from config import load_config
+config = load_config("config.yaml")
+random_state = config["random"]
+test_size = config["test_size"]
 
 class ModelTrainer:
     '''
@@ -39,34 +43,49 @@ class ModelTrainer:
         self.X_test = X_test
         self.y_test = y_test
 
-        #self.sample_weights = compute_sample_weight(class_weight='balanced', y=y_train)
-
+        def get_dist(key, val):
+            # Only use randint/uniform if the parameter is a range [low, high]
+            # For parameters like max_depth that include 'None', just return the list
+            if key in ['n_estimators', 'min_samples_split'] and isinstance(val, list) and len(val) == 2:
+                return randint(val[0], val[1])
+            if key == 'learning_rate':
+                return uniform(val[0], val[1])
+            
+            # If it's a list with more than 2 elements, return it as-is
+            return val
+        
         # Define hyperparameter grids
         self.param_distributions = {
-            "Random Forest": {
-                'n_estimators': randint(50, 300),
-                'max_depth': [None, 10, 20, 30, 40, 50],
-                'min_samples_split': randint(2, 21)
-            },
-            "XGBoost": {
-                'n_estimators': randint(100, 500),
-                'learning_rate': uniform(0.01, 0.3),
-                'max_depth': randint(3, 10),
-                'subsample': [0.7, 0.8, 0.9, 1.0], 
-                'colsample_bytree': [0.7, 0.8, 0.9, 1.0]
-            },
-            "SVM (RBF)": {
-                'C': [0.1, 1, 10, 100],
-                'gamma': ['scale', 'auto', 0.1, 0.01]
-            },
+            model: {k: get_dist(k, v) for k, v in params.items()}
+            for model, params in config['model_params'].items()
         }
 
+
+        def get_class(module_name, class_name):
+            module = importlib.import_module(module_name)
+            return getattr(module, class_name)
+
+        def build_models(config, y_train):
+            initialised_models = {}
+            
+            for model_name, cfg in config['models'].items():
+                # Look up definition
+                definition = config['model_definitions'][model_name]
+                
+                # Import class dynamically
+                model_class = get_class(definition['module'], definition['class'])
+                
+                # Prepare params
+                params = cfg['params'].copy()
+                if cfg['name'] == "XGBoost":
+                    import numpy as np
+                    params['num_class'] = len(np.unique(y_train))
+                    
+                initialised_models[model_name] = model_class(**params)
+                
+            return initialised_models
         # Define machine learning models
-        self.models = {
-            "Random Forest": RandomForestClassifier(class_weight="balanced", random_state=42),
-            "XGBoost": XGBClassifier(objective='multi:softprob', eval_metric="mlogloss", num_class=len(np.unique(self.y_train)), random_state=42),
-            "SVM (RBF)": SVC(class_weight="balanced"),
-        }
+        self.models = build_models(config, self.y_train)
 
         # Create label encoder for target variable
         self.label_encoder = LabelEncoder()
@@ -83,7 +102,7 @@ class ModelTrainer:
         y_encoded = self.label_encoder.fit_transform(self.y_train)
         X_train_sub, X_val, y_train_sub, y_val = train_test_split(
             self.X_train, y_encoded, 
-            test_size=0.1, stratify=y_encoded, random_state=42
+            test_size=test_size, stratify=y_encoded, random_state=random_state
         )
         # Recalculate weights on this subset
         self.sample_weights_sub = compute_sample_weight(
@@ -93,7 +112,7 @@ class ModelTrainer:
         
 
         self.best_models = {}
-        cv_strategy = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
+        cv_strategy = StratifiedKFold(n_splits=3, shuffle=True, random_state=random_state)
         print("Training machine learning models...")
         
         # Train and store each model

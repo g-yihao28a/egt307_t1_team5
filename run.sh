@@ -1,15 +1,6 @@
 #!/bin/bash
 
-# Create the virtual environment if it does not exist
-if [ ! -d ".venv" ]; then
-    python3 -m venv .venv
-fi
+set -e
 
-# Activate virtual environment
-source .venv/bin/activate
-
-# Install libraries
-pip install -r requirements.txt
-
-# Run pipeline
+echo "Starting Pipeline..."
 python src/main.py

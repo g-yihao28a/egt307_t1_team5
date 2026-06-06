@@ -2,8 +2,16 @@ import pandas as pd
 from sqlalchemy import create_engine, inspect, text
 from pathlib import Path
 import sqlalchemy
+from config import load_config
 
-def load_data_from_db(db_path: Path, table_name: str):
+# Load Config
+config = load_config("config.yaml")
+data_cfg = config["data"]
+
+db_path = Path.cwd() / data_cfg["data_directory"] / data_cfg["db_name"]
+table_name = data_cfg["table_name"]
+
+def load_data_from_db(db_path=db_path, table_name=table_name):
     '''
     Reads data from a SQL database and returns it as a DataFrame
 

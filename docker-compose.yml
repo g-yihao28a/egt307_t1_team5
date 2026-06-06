@@ -11,3 +11,12 @@ services:
       - ./data:/work/data
     environment:
       - JUPYTER_ENABLE_LAB=yes
+
+  pipeline:
+      build: .
+      container_name: egt307_pipeline
+      volumes:
+        - ./src:/work/src
+        - ./data:/work/data
+      restart: "no"
+      command: bash run.sh

@@ -10,6 +10,12 @@ class DataPreprocessor:
         self.pipeline = None
 
     def _auto_identify_features(self, df):
+        """
+        Automatically identify data types of columns in a dataframe
+
+        Args:
+            df (str): The dataframe to be checked
+        """
         # Drop the target from the dataframe to identify only features
         features = df.drop(columns=[self.target_col])
         
@@ -19,10 +25,13 @@ class DataPreprocessor:
         # Automatically identify categorical columns (object, category, bool)
         self.categorical_features = features.select_dtypes(include=['object', 'category', 'bool']).columns.tolist()
         
-        print(f"Detected Numeric: {self.numeric_features}")
-        print(f"Detected Categorical: {self.categorical_features}")
+        # print(f"Detected Numeric: {self.numeric_features}") # Optional print statements for debugging
+        # print(f"Detected Categorical: {self.categorical_features}")
 
     def scale_and_encode(self):
+        """
+        Scale numeric data and one hot encode categorical data
+        """
         numeric_transformer = StandardScaler()
         categoric_transformer = OneHotEncoder(handle_unknown='ignore', sparse_output=False)
 
@@ -36,10 +45,21 @@ class DataPreprocessor:
         self.pipeline.set_output(transform="pandas")
 
     def process(self, df):
+        """
+        Apply preprocessing pipeline and split training and testing data
+
+        Args:
+            df: Dataframe containing all data
+        Returns:
+            X_train: Input features for training
+            X_test: Input features for testing
+            y_train: Target feature for training
+            y_test: Target feature for testing
+        """
         # Identify types dynamically based on the input dataframe
         self._auto_identify_features(df)
         self.scale_and_encode()
-        
+
         X = df.drop(columns=[self.target_col])
         y = df[self.target_col]
         

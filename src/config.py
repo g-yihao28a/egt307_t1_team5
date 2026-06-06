@@ -21,6 +21,5 @@ def load_config(config_name: str) -> dict:
         raise ValueError(f"Configuration file not found at: {config_path.absolute()}")
     
     # Load configs and return as dictionary
-    print(f"Configuration file: {config_name} found\nLoading configs")
     with open(config_path, "r") as f:
         return yaml.safe_load(f)
