@@ -10,7 +10,7 @@
 * feature_engineering.py - Jayden
 * ingestion.py-Nigel
 * preprocessing.py - Yihao
-* syntehtic_data_generation.py - Jayden
+* synthetic_data_generation.py - Jayden
 * training.py - Yihao
 
 ## How to run the pipeline
