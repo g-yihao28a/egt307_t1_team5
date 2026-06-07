@@ -144,79 +144,6 @@ class ModelTrainer:
             
         print("All models trained successfully")
 
-    def evaluate_models(self):
-        '''
-        Evaluates all trained models using test data.
-
-        Args:
-            X_test: Testing features
-            y_test: Actual testing labels
-        '''
-        X_test = self.X_test
-        y_test = self.label_encoder.transform(self.y_test)
-
-        # Store model evaluation results
-        self.results = {}
-        # Evaluate each trained model
-        for name, model in self.best_models.items():
-    
-            print(f"Evaluating {name}...")
-            preds = model.predict(X_test)
-            acc = accuracy_score(y_test, preds)
-            self.results[name] = {
-                "accuracy": accuracy_score(y_test, preds),
-                "precision": precision_score(y_test, preds, average='weighted'),
-                "recall": recall_score(y_test, preds, average='weighted'),
-                "f1_score": f1_score(y_test, preds, average='weighted')
-            }
-            
-            print(f"Results for {name}: {self.results[name]}")
-            print("--------------------------")
-            print(classification_report(y_test, preds, target_names=self.label_encoder.classes_))
-            cm = confusion_matrix(y_test, preds)
-            print(cm)
-
-            importances = self.best_models['Random Forest'].feature_importances_
-            feature_names = self.X_train.columns
-
-            # Create a ranking
-            feat_imp = pd.Series(importances, index=feature_names).sort_values(ascending=False)
-            print(feat_imp.head(100))
-    
-        print("Model evaluation completed")
-
-    def export_results(self, filename="experiment_log.csv"):
-            """
-            Appends the results and best parameters to a single CSV summary file.
-            """
-            # Prepare data for a single row
-            # Flattening results for the CSV structure
-            row_data = {
-                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            }
-            
-            # Add accuracy/metrics for each model
-            for name, metrics in self.results.items():
-                # If metrics is a dict, flatten it
-                if isinstance(metrics, dict):
-                    for metric_name, value in metrics.items():
-                        row_data[f"{name}_{metric_name}"] = value
-                else:
-                    # Fallback for simple accuracy float
-                    row_data[f"{name}_accuracy"] = metrics
-            
-            # Add best parameters (as a string to keep the CSV clean)
-            params_str = {name: str(model.get_params()) for name, model in self.best_models.items()}
-            row_data["parameters"] = str(params_str)
-
-            # Convert to DataFrame and append
-            df = pd.DataFrame([row_data])
-            
-            # Write to CSV (create if it does not exist, otherwise append)
-            file_exists = os.path.isfile(filename)
-            df.to_csv(filename, mode='a', index=False, header=not file_exists)
-            
-            print(f"Results appended to '{filename}'.")
 
     def run(self):
         '''
@@ -231,8 +158,7 @@ class ModelTrainer:
         # Train machine learning models
         self.train_models()
 
-        # Evaluate trained models
-        self.evaluate_models()
-
         print("-------------------------")
         print("Machine learning completed")
+        
+        return self.best_models, self.label_encoder

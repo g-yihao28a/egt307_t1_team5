@@ -14,6 +14,7 @@ from feature_engineering import FeatureEngineer
 from preprocessing import DataPreprocessor
 from synthetic_data_generation import generate_data
 from training import ModelTrainer
+from evaluate import Evaluation
 
 try:
     # Load Data
@@ -36,8 +37,20 @@ try:
     
     # Train Model
     trainer = ModelTrainer("activity_level", X_train, y_train, X_test, y_test)
-    trainer.run()
-    trainer.export_results()
+    best_models, label_encoder = trainer.run()
+
+
+    # Evaluate Models
+    evaluator = Evaluation(
+        trainer.best_models,
+        trainer.label_encoder,
+        X_train,
+        X_test,
+        y_test
+    )
+
+    evaluator.evaluate_models()
+    evaluator.export_results()
 
 except ValueError as e:
     print(f"Aborting pipeline: {e}")
