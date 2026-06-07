@@ -2,7 +2,7 @@ data:
   data_directory: "data"
   db_name: "gas_monitoring.db"
   table_name: "gas_monitoring"
-
+target_col: "activity_level"
 clean:
   columns_to_drop:
     - "session_id"
@@ -34,7 +34,6 @@ clean:
     - "metaloxidesensor_unit4"
 random: 42
 test_size: 0.1
-
 model_params:
   Random Forest:
     n_estimators: [50, 300]

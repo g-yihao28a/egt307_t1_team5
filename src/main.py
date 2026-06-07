@@ -28,7 +28,7 @@ try:
     df = engineer.add_features(df)
     
     # Split Data
-    preprocessor = DataPreprocessor(target_col="activity_level")
+    preprocessor = DataPreprocessor()
     X_train, X_test, y_train, y_test = preprocessor.process(df)
 
     # Generate synthetic data

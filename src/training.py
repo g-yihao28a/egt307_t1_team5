@@ -78,12 +78,12 @@ class ModelTrainer:
                 # Prepare params
                 params = cfg['params'].copy()
                 if cfg['name'] == "XGBoost":
-                    import numpy as np
                     params['num_class'] = len(np.unique(y_train))
                     
                 initialised_models[model_name] = model_class(**params)
                 
             return initialised_models
+        
         # Define machine learning models
         self.models = build_models(config, self.y_train)
 

@@ -3,9 +3,13 @@ from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.model_selection import train_test_split
+from config import load_config
 
+# Load Config
+config = load_config("config.yaml")
+target_col = config["target_col"]
 class DataPreprocessor:
-    def __init__(self, target_col):
+    def __init__(self):
         self.target_col = target_col
         self.pipeline = None
 
