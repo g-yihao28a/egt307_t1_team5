@@ -26,6 +26,21 @@
 4. To run it run: docker compose up jupyter
 
 ## Summary of EDA key findings
+There are missing data in 4 columns:Humidity, MetalOxideSensor_Unit2, CO_GasSensor, and Ambient Light Level. These missing values appear to be missing completely at random.
+
+There are inconsistent naming in 2 columns:HVAC Operation Mode and Activity Level.
+
+There exists temperature values that are extremely high(280-310) and are assumed to be in Kelvin. These values appear at random.
+
+There are also humidity values below 0 and above 100, which is impossible as humidity is recorded in percentage and appear completely at random.
+
+Numerical data are highly correlated except for temperature and humidity, which after further analysis was found to have a non-linear relationship. This suggests that linear machine learning models may not be effective in this scenario.
+
+HVAC Operation Mode and Ambient Light Level have little to no impact on the rest of the data and is not useful in this scenario.
+
+Dimensionality reduction could be an effective method if the input data becomes much bigger in size, but is unnecessary in this scenario and would have the drawback of reducing the explainability of the model.
+
+Lastly, training a random forest model revealed that the categorical data had little to no importance to predicting activity level and can be dropped without any drawback.
 
 ## Explain and justify features that are engineered
 
@@ -38,7 +53,6 @@ To improve the performance of the models, RandomizedSearchCV was used to test di
 
 
 ## Explain any specific choice of metrics that are important to the problem statement
-
 The models are evaluated using Accuracy, Precision, Recall, and F1-Score.
 
 1. Accuracy measures the overall percentage of correct activity level predictions.
