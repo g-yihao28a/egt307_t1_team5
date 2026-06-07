@@ -39,7 +39,7 @@ To improve the performance of the models, RandomizedSearchCV was used to test di
 
 ## Explain any specific choice of metrics that are important to the problem statement
 
-The models are evaluated using Accuracy, Precision, Recall, and F1=-Score.
+The models are evaluated using Accuracy, Precision, Recall, and F1-Score.
 
 1. Accuracy measures the overall percentage of correct activity level predictions.
 2. Precision measures how often the predicted activity level is correct.
