@@ -39,11 +39,11 @@ To improve the performance of the models, RandomizedSearchCV was used to test di
 
 ## Explain any specific choice of metrics that are important to the problem statement
 
-The models are evulated using Accuracy, Precision, Recall, and F1=-Score.
-    1. Accuracy measures the overall percentage of correct activity level predictions.
-    2. Precision measures how often the predicted activity level is correct.
-    3. Recall measures how well the model identifies the actual activity level of residents.
-    4. F1-Score combines Precision and Recall into a single score.
+The models are evaluated using Accuracy, Precision, Recall, and F1=-Score.
 
-The weighted F1-Score was selected as the main metric for model tuning because the dataset may contain imbalanced activity levels. A high F1-Score indicates that the model can accurately identify activity patterns while minimising incorrect predictions. For the problem statement, incorrect classifications could reduce the effectiveness of the early warning system used to monitor elderly residents and detect potential health concerns. In this case, we want to minimise false negatives over false positives.
+1. Accuracy measures the overall percentage of correct activity level predictions.
+2. Precision measures how often the predicted activity level is correct.
+3. Recall measures how well the model identifies the actual activity level of residents.
+4. F1-Score combines Precision and Recall into a single score.
 
+The weighted F1-Score was selected as the main metric for model tuning because the dataset may contain imbalanced activity levels. A high F1-Score indicates that the model can accurately identify activity patterns while minimising incorrect predictions. For the problem statement, incorrect classifications could reduce the effectiveness of the early warning system used to monitor elderly residents and detect potential health concerns.
